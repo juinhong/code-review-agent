@@ -28,4 +28,7 @@ runAgent(filePath).then((review) => {
 
     console.log("\n📝 Summary:");
     console.log(" ", review.summary);
-}).catch(console.error);
+}).catch((e) => {
+    console.error(`\n❌ ${(e as Error).message}`);
+    process.exit(1);
+});
