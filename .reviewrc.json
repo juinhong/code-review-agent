@@ -1,0 +1,10 @@
+{
+    "model": "gemini-2.5-flash",
+    "ignore": [
+        "dist/"
+    ],
+    "focus": [
+        "security"
+    ],
+    "maxSteps": 10
+}
