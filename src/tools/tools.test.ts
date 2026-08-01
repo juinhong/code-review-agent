@@ -1,6 +1,6 @@
-import { readFileTool } from "./read_file";
-import { listFilesTool } from "./list_files";
-import { codeSearchTool } from "./code_search";
+import { readFileTool } from "./read_file.js";
+import { listFilesTool } from "./list_files.js";
+import { codeSearchTool } from "./code_search.js";
 
 async function runTests() {
     console.log("--- read_file ---");

@@ -1,11 +1,12 @@
 import { generateText, stepCountIs } from "ai";
 import { google } from "@ai-sdk/google";
-import { readFileTool } from "./tools/read_file";
-import { listFilesTool } from "./tools/list_files";
-import { codeSearchTool } from "./tools/code_search";
-import { ReviewResult, ReviewResultSchema } from "./schema";
+import { readFileTool } from "./tools/read_file.js";
+import { listFilesTool } from "./tools/list_files.js";
+import { codeSearchTool } from "./tools/code_search.js";
+import { ReviewResult, ReviewResultSchema } from "./schema.js";
 import { existsSync, readFileSync } from "node:fs";
-import { loadConfig } from "./config";
+import { loadConfig } from "./config.js";
+import { safePath } from "./utils/safe-path.js";
 
 type AgentInput =
     | { mode: "file"; content: string }
@@ -16,7 +17,7 @@ export async function runAgent(input: AgentInput): Promise<ReviewResult> {
 
     // skip ignored paths in file mode
     if (input.mode === "file") {
-        const filePath = input.content;
+        const filePath = safePath(input.content);
 
         const isIgnored = config.ignore.some((pattern) =>
             filePath.includes(pattern.replace("*", "")));
@@ -57,9 +58,11 @@ The JSON must match this exact shape:
 "line" is optional — only include it if you can identify the specific line number.
 If there are no items for a category, return an empty array.`;
 
+    const safeFP = input.mode === "file" ? safePath(input.content) : null;
+
     var prompt: string
     if (input.mode === "file") {
-        prompt = `You are an expert code reviewer. Review the file at path: ${input.content}.
+        prompt = `You are an expert code reviewer. Review the file at path: ${safeFP}.
 Use the read_file tool to read it. Use list_files and code_search if you need more context.
 ${sharedOutputInstruction}`
     } else {

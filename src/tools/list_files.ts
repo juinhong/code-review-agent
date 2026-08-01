@@ -1,15 +1,17 @@
-import { tool } from "ai";
+import { tool, zodSchema } from "ai";
 import { z } from "zod";
 import { readdirSync } from "fs";
 import { join } from "path";
+import { safePath } from "../utils/safe-path.js"
 
 export const listFilesTool = tool({
     description: "List all files in a directory recursively. Use this to understand the structure of a codebase before reading specific files.",
-    parameters: z.object({
+    inputSchema: zodSchema(z.object({
         path: z.string().describe("Relative path to the directory to list"),
-    }),
-    execute: async ({ path }) => {
+    })),
+    execute: async ({ path }: { path: string }) => {
         try {
+            const safeDir = safePath(path);
             const results: string[] = []
 
             const walk = (dir: string) => {
@@ -24,7 +26,7 @@ export const listFilesTool = tool({
                 }
             };
 
-            walk(path);
+            walk(safeDir);
             return results.join("\n");
         } catch (e) {
             return `Error listing files: ${(e as Error).message}`;

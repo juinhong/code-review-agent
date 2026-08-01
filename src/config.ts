@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
-import { config, z } from "zod";
+import { z } from "zod";
 
 const ConfigSchema = z.object({
     model: z.string().default("gemini-2.5-flash"),

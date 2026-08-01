@@ -1,8 +1,10 @@
+#!/usr/bin/env node
+
 import "dotenv/config";
-import { runAgent } from "./agent";
-import { getDiff, getStagedFiles } from "./diff";
-import { ReviewResult, Finding } from "./schema";
-import { installHook } from "./hook";
+import { runAgent } from "./agent.js";
+import { getDiff, getStagedFiles } from "./diff.js";
+import { ReviewResult, Finding } from "./schema.js";
+import { installHook } from "./hook.js";
 
 
 const args = process.argv.slice(2);
@@ -96,7 +98,7 @@ function printFindings(findings: Finding[]) {
     }
 
     const sorted = [...findings].sort((a, b) => {
-        const order = { critical: 0, warning: 1, info: 2 };
+        const order: Record<Finding["severity"], number> = { critical: 0, warning: 1, info: 2 };
         return order[a.severity] - order[b.severity];
     });
 
