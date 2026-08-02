@@ -21,7 +21,7 @@ export async function runAgent(input: AgentInput): Promise<ReviewResult> {
     let filePath = "";
     // skip ignored paths in file mode
     if (input.mode === "file") {
-        const filePath = safePath(input.content);
+        filePath = safePath(input.content);
 
         const isIgnored = config.ignore.some((pattern) =>
             filePath.includes(pattern.replace("*", "")));
@@ -49,7 +49,8 @@ export async function runAgent(input: AgentInput): Promise<ReviewResult> {
         const contextBlock = importedFiles
             .map((importedPath) => {
                 try {
-                    const content = readFileSync(importedPath, "utf-8");
+                    const safeImportedPath = safePath(importedPath);
+                    const content = readFileSync(safeImportedPath, "utf-8");
                     return `--- ${importedPath} ---\n${content}`;
                 } catch {
                     return null;
@@ -59,7 +60,7 @@ export async function runAgent(input: AgentInput): Promise<ReviewResult> {
             .join("\n\n");
 
         // store for us in prompt
-        importContext = contextBlock;
+        importContext = sanitizeContent(contextBlock);
     }
 
     const focusInstruction = config.focus.length > 0
@@ -109,7 +110,11 @@ ${sharedOutputInstruction}`;
         prompt,
     });
 
-    const cleaned = result.text.replace(/```json|```/g, "").trim();
-    const parsed = ReviewResultSchema.parse(JSON.parse(cleaned));
-    return parsed;
+    try {
+        const cleaned = result.text.replace(/```json|```/g, "").trim();
+        const parsed = ReviewResultSchema.parse(JSON.parse(cleaned));
+        return parsed;
+    } catch {
+        throw new Error(result.text);
+    }
 }
