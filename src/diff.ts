@@ -1,29 +1,42 @@
-import { execSync, spawnSync } from "child_process";
+import { spawn } from "child_process";
 
-export function getDiff(ref: "staged" | string): string {
+const SAFE_REF_REGEX = /^[a-zA-Z0-9._/~^:\-]+$/;
+
+function spawnAsync(cmd: string, args: string[]): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const proc = spawn(cmd, args);
+        let stdout = "";
+        let stderr = "";
+
+        proc.stdout.on("data", (data: Buffer) => (stdout += data.toString()));
+        proc.stderr.on("data", (data: Buffer) => (stderr += data.toString()));
+
+        proc.on("close", (code) => {
+            if (code !== 0) {
+                reject(new Error(`git failed: ${stderr}`));
+            } else {
+                resolve(stdout);
+            }
+        });
+
+        proc.on("error", reject);
+    })
+}
+
+export async function getDiff(ref: "staged" | string): Promise<string> {
     if (ref === "staged") {
-        const result = spawnSync("git", ["diff", "--staged"], { encoding: "utf-8" });
-        if (result.error) throw new Error(`Failed to get diff: ${result.error.message}`);
-        if (result.status !== 0) throw new Error(`git diff failed: ${result.stderr}`);
-        return result.stdout;
+        return spawnAsync("git", ["diff", "--staged"]);
     }
 
     // validate ref — only allow safe git ref characters
-    if (!/^[a-zA-Z0-9._/~^:\-]+$/.test(ref)) {
+    if (!SAFE_REF_REGEX.test(ref)) {
         throw new Error(`Invalid git ref: ${ref}`);
     }
 
-    const result = spawnSync("git", ["diff", ref], { encoding: "utf-8" });
-    if (result.error) throw new Error(`Failed to get diff: ${result.error.message}`);
-    if (result.status !== 0) throw new Error(`git diff failed: ${result.stderr}`);
-    return result.stdout;
+    return spawnAsync("git", ["diff", ref]);
 }
 
-export function getStagedFiles(): string[] {
-    try {
-        const output = execSync("git diff --staged --name-only", { encoding: "utf-8" });
-        return output.trim().split("\n").filter(Boolean);
-    } catch (e) {
-        throw new Error(`Failed to get staged files: ${(e as Error).message}`);
-    }
+export async function getStagedFiles(): Promise<string[]> {
+    const stdout = await spawnAsync("git", ["diff", "--staged", "--name-only"]);
+    return stdout.trim().split("\n").filter(Boolean);
 }

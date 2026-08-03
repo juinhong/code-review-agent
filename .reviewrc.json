@@ -1,7 +1,9 @@
 {
     "model": "gemini-2.5-flash",
     "ignore": [
-        "dist/"
+        "dist/**",
+        "**/*.test.ts",
+        "node_modules/**"
     ],
     "focus": [
         "security"

@@ -6,7 +6,6 @@ import { getDiff, getStagedFiles } from "./diff.js";
 import { ReviewResult, Finding } from "./schema.js";
 import { installHook } from "./hook.js";
 
-
 const args = process.argv.slice(2);
 const diffFlagIndex = args.indexOf("--diff");
 const stagedFlag = args.includes("--staged");
@@ -25,7 +24,7 @@ if (args.includes("--install-hook")) {
 
 async function main() {
     if (stagedFlag) {
-        const diff = getDiff("staged");
+        const diff = await getDiff("staged");
         if (!diff.trim()) {
             console.log("No staged changes found.");
             process.exit(0);
@@ -38,7 +37,7 @@ async function main() {
             console.error("Usage: npx tsx src/index.ts --diff <ref>");
             process.exit(1);
         }
-        const diff = getDiff(ref);
+        const diff = await getDiff(ref);
         if (!diff.trim()) {
             console.log("No changes found.");
             process.exit(0);
@@ -46,7 +45,7 @@ async function main() {
         const review = await runAgent({ mode: "diff", content: diff });
         printReview(review);
     } else if (stagedFilesFlag) {
-        const files = getStagedFiles();
+        const files = await getStagedFiles();
         if (files.length === 0) {
             console.log("No staged files found.");
             process.exit(0);

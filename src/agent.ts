@@ -9,6 +9,8 @@ import { loadConfig } from "./config.js";
 import { safePath } from "./utils/safe-path.js";
 import { resolveImports } from "./utils/resolve-imports.js";
 import { sanitizeContent } from "./utils/sanitize-content.js";
+import micromatch from "micromatch";
+import { relative } from "path";
 
 type AgentInput =
     | { mode: "file"; content: string }
@@ -23,8 +25,8 @@ export async function runAgent(input: AgentInput): Promise<ReviewResult> {
     if (input.mode === "file") {
         filePath = safePath(input.content);
 
-        const isIgnored = config.ignore.some((pattern) =>
-            filePath.includes(pattern.replace("*", "")));
+        const relativePath = relative(process.cwd(), filePath);
+        const isIgnored = micromatch.isMatch(relativePath, config.ignore);
         if (isIgnored) {
             throw new Error(`File is ignored by config: ${filePath}`);
         }
