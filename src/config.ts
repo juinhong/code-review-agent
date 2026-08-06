@@ -23,7 +23,7 @@ export function loadConfig(): Config {
         const raw = JSON.parse(readFileSync(configPath, "utf-8"));
         return ConfigSchema.parse(raw);
     } catch (e) {
-        console.warn("⚠️  Invalid .reviewrc.json — using defaults");
+        console.warn("⚠️  Invalid .reviewrc.json — using defaults", e);
         return ConfigSchema.parse({});
     }
 }

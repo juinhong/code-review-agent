@@ -19,8 +19,8 @@ type AgentInput =
 export async function runAgent(input: AgentInput): Promise<ReviewResult> {
     const config = loadConfig();
 
-    let importContext = "";
     let filePath = "";
+    let importContext = "";
     // skip ignored paths in file mode
     if (input.mode === "file") {
         filePath = safePath(input.content);

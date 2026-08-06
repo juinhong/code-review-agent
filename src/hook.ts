@@ -1,4 +1,4 @@
-import { writeFileSync, chmodSync, existsSync, mkdirSync } from "fs";
+import { writeFileSync, chmodSync, existsSync } from "fs";
 import { join } from "path";
 
 export function installHook() {
@@ -7,6 +7,12 @@ export function installHook() {
 
     if (!existsSync(hooksDir)) {
         throw new Error("No .git directory found. Are you in a git repo?")
+    }
+
+    if (existsSync(hookPath)) {
+        console.warn("⚠️  A pre-commit hook already exists at .git/hooks/pre-commit");
+        console.warn("   Remove it manually if you want to reinstall.");
+        return;
     }
 
     const script = `#!/bin/sh

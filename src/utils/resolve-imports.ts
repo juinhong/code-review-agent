@@ -3,6 +3,11 @@ import { resolve, dirname, join } from "path";
 
 const IMPORT_REGEX = /from\s+['"](\.[^'"]+)['"]/g;
 
+/**
+ * Extracts and resolves relative TypeScript imports from a file.
+ * Note: filePath must be pre-validated with safePath() before calling this function.
+ * Resolved import paths are validated with safePath() by the caller before use.
+ */
 export function resolveImports(filePath: string): string[] {
     const resolvedFile = resolve(filePath);
     const dir = dirname(resolvedFile);
@@ -10,7 +15,8 @@ export function resolveImports(filePath: string): string[] {
     let content: string;
     try {
         content = readFileSync(resolvedFile, "utf-8");
-    } catch {
+    } catch (e) {
+        console.warn(`⚠️  Could not read file for import resolution: ${resolvedFile}`);
         return [];
     }
 

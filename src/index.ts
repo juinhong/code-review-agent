@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 
 import "dotenv/config";
+import { program } from "commander";
 import { runAgent } from "./agent.js";
 import { getDiff, getStagedFiles } from "./diff.js";
 import { ReviewResult, Finding } from "./schema.js";
 import { installHook } from "./hook.js";
-
-const args = process.argv.slice(2);
-const diffFlagIndex = args.indexOf("--diff");
-const stagedFlag = args.includes("--staged");
-const stagedFilesFlag = args.includes("--staged-files");
 
 const SEVERITY_BADGE: Record<Finding["severity"], string> = {
     critical: "🔴 CRITICAL",
@@ -17,77 +13,91 @@ const SEVERITY_BADGE: Record<Finding["severity"], string> = {
     info: "🔵 INFO    ",
 };
 
-if (args.includes("--install-hook")) {
-    installHook();
-    process.exit(0);
-}
-
 async function main() {
-    if (stagedFlag) {
-        const diff = await getDiff("staged");
-        if (!diff.trim()) {
-            console.log("No staged changes found.");
-            process.exit(0);
-        }
-        const review = await runAgent({ mode: "diff", content: diff });
-        printReview(review);
-    } else if (diffFlagIndex !== -1) {
-        const ref = args[diffFlagIndex + 1];
-        if (!ref) {
-            console.error("Usage: npx tsx src/index.ts --diff <ref>");
-            process.exit(1);
-        }
-        const diff = await getDiff(ref);
-        if (!diff.trim()) {
-            console.log("No changes found.");
-            process.exit(0);
-        }
-        const review = await runAgent({ mode: "diff", content: diff });
-        printReview(review);
-    } else if (stagedFilesFlag) {
-        const files = await getStagedFiles();
-        if (files.length === 0) {
-            console.log("No staged files found.");
-            process.exit(0);
-        }
+    program
+        .name("code-review-agent")
+        .description("AI-powered code review CLI")
+        .version("1.0.0");
 
-        console.log(`\n🔍 Reviewing ${files.length} staged file(s)...\n`);
-
-        let hasCritical = false;
-
-        for (const file of files) {
-            console.log(`\n${"─".repeat(50)}`);
-            console.log(`📄 ${file}`);
-            console.log("─".repeat(50));
-            try {
-                const review = await runAgent({ mode: "file", content: file });
-                const critical = printReview(review);
-                if (critical) {
-                    hasCritical = true;
-                }
-            } catch (e) {
-                console.error(`  ❌ Skipped: ${(e as Error).message}`);
+    program
+        .argument("[file]", "file to review")
+        .option("--staged", "review staged diff as a whole")
+        .option("--staged-files", "review each staged file individually")
+        .option("--diff <ref>", "review diff against a git ref (e.g. HEAD~1)")
+        .option("--install-hook", "install pre-commit git hook")
+        .action(async (file, options) => {
+            if (options.installHook) {
+                installHook();
+                return;
             }
-        }
 
-        if (hasCritical) {
-            console.log("\n🚫 Commit blocked — critical issues found. Fix them before committing.");
-            process.exit(1);
-        } else {
-            console.log("\n✅ All clear — no critical issues found.");
-            process.exit(0);
-        }
-    } else {
-        const filePath = args[0];
-        if (!filePath) {
-            console.error("Usage: npx tsx src/index.ts <file-path>");
-            console.error("       npx tsx src/index.ts --staged");
-            console.error("       npx tsx src/index.ts --diff <ref>");
-            process.exit(1);
-        }
-        const review = await runAgent({ mode: "file", content: filePath });
-        printReview(review);
-    }
+            if (options.stagedFiles) {
+                const files = await getStagedFiles();
+                if (files.length === 0) {
+                    console.log("No staged files found.");
+                    return;
+                }
+
+                console.log(`\n🔍 Reviewing ${files.length} staged file(s)...\n`);
+
+                let hasCritical = false;
+
+                for (const file of files) {
+                    console.log(`\n${"─".repeat(50)}`);
+                    console.log(`📄 ${file}`);
+                    console.log("─".repeat(50));
+                    try {
+                        const review = await runAgent({ mode: "file", content: file });
+                        const critical = printReview(review);
+                        if (critical) {
+                            hasCritical = true;
+                        }
+                    } catch (e) {
+                        console.error(`  ❌ Skipped: ${(e as Error).message}`);
+                    }
+                }
+
+                if (hasCritical) {
+                    console.log("\n🚫 Commit blocked — critical issues found. Fix them before committing.");
+                    process.exit(1);
+                } else {
+                    console.log("\n✅ All clear — no critical issues found.");
+                    return;
+                }
+            }
+
+            if (options.staged) {
+                const diff = await getDiff("staged");
+                if (!diff.trim()) {
+                    console.log("No staged changes found.");
+                    return;
+                }
+                const review = await runAgent({ mode: "diff", content: diff });
+                printReview(review);
+                return;
+            }
+
+            if (options.diff) {
+                const diff = await getDiff(options.diff);
+                if (!diff.trim()) {
+                    console.log("No changes found.");
+                    return;
+                }
+                const review = await runAgent({ mode: "diff", content: diff });
+                printReview(review);
+                return;
+            }
+
+            if (file) {
+                const review = await runAgent({ mode: "file", content: file });
+                printReview(review);
+                return;
+            }
+
+            program.help();
+        });
+
+    await program.parseAsync();
 }
 
 function printFindings(findings: Finding[]) {
@@ -107,7 +117,7 @@ function printFindings(findings: Finding[]) {
     });
 }
 
-function printReview(review: ReviewResult) {
+function printReview(review: ReviewResult): boolean {
     console.log("\n🔍 Code Review\n");
 
     console.log("🐛 Bugs:");

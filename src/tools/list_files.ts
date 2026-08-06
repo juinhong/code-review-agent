@@ -14,12 +14,19 @@ export const listFilesTool = tool({
             const safeDir = safePath(path);
             const results: string[] = []
 
+            const visited = new Set<string>();
+
             const walk = (dir: string) => {
+                if (visited.has(dir)) return;
+                visited.add(dir);
+
                 const entries = readdirSync(dir, { withFileTypes: true });
                 for (const entry of entries) {
                     const fullPath = join(dir, entry.name);
-                    if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".git") {
-                        walk(fullPath);
+                    if (entry.isDirectory()) {
+                        if (entry.name !== "node_modules" && entry.name !== ".git") {
+                            walk(fullPath);
+                        }
                     } else if (entry.isFile()) {
                         results.push(fullPath);
                     }

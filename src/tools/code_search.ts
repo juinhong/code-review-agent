@@ -15,19 +15,36 @@ export const codeSearchTool = tool({
             const safeDir = safePath(path);
             const results: string[] = [];
 
+            const visited = new Set<string>();
+
             const walk = (dir: string) => {
-                const entries = readdirSync(dir, { withFileTypes: true });
+                if (visited.has(dir)) return;
+                visited.add(dir);
+
+                let entries;
+                try {
+                    entries = readdirSync(dir, { withFileTypes: true });
+                } catch {
+                    return; // skip unreadable directories
+                }
+
                 for (const entry of entries) {
                     const fullPath = join(dir, entry.name);
-                    if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".git") {
-                        walk(fullPath);
+                    if (entry.isDirectory()) {
+                        if (entry.name !== "node_modules" && entry.name !== ".git") {
+                            walk(fullPath);
+                        }
                     } else if (entry.isFile()) {
-                        const lines = readFileSync(fullPath, "utf-8").split("\n");
-                        lines.forEach((line, i) => {
-                            if (line.includes(pattern)) {
-                                results.push(`${fullPath}:${i + 1}: ${line.trim()}`);
-                            }
-                        });
+                        try {
+                            const lines = readFileSync(fullPath, "utf-8").split("\n");
+                            lines.forEach((line, i) => {
+                                if (line.includes(pattern)) {
+                                    results.push(`${fullPath}:${i + 1}: ${line.trim()}`);
+                                }
+                            });
+                        } catch {
+                            // skip unreadable files
+                        }
                     }
                 }
             };
