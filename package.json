@@ -14,13 +14,18 @@
     "start": "node dist/index.js",
     "dev": "./node_modules/.bin/tsx src/index.ts"
   },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juinhong/code-review-agent"
+  },
   "keywords": [
     "ai",
     "code-review",
     "cli",
-    "gemini"
+    "gemini",
+    "agent"
   ],
-  "license": "MIT",
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
     "@types/micromatch": "^4.0.10",
