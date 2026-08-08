@@ -15,7 +15,7 @@ const SEVERITY_BADGE: Record<Finding["severity"], string> = {
 
 async function main() {
     program
-        .name("code-review-agent")
+        .name("code-agent-review")
         .description("AI-powered code review CLI")
         .version("1.0.0");
 

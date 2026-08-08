@@ -1,4 +1,4 @@
-# code-review-agent
+# code-agent-review
 
 An AI-powered code review CLI that uses an agent loop to read your codebase and output structured reviews covering bugs, suggestions, and security concerns.
 
@@ -7,7 +7,7 @@ Built with TypeScript, Vercel AI SDK, and Gemini 2.5 Flash.
 ## Installation
 
 ```bash
-npm install -g code-review-agent
+npm install -g code-agent-review
 ```
 
 Set your Gemini API key:
@@ -20,28 +20,28 @@ export GOOGLE_GENERATIVE_AI_API_KEY=your-key-here
 
 ### Review a single file
 ```bash
-code-review-agent src/index.ts
+code-agent-review src/index.ts
 ```
 
 ### Review staged changes as a diff
 ```bash
-code-review-agent --staged
+code-agent-review --staged
 ```
 
 ### Review each staged file individually
 ```bash
-code-review-agent --staged-files
+code-agent-review --staged-files
 ```
 
 ### Review a specific commit or branch diff
 ```bash
-code-review-agent --diff HEAD~1
-code-review-agent --diff main...feat/my-branch
+code-agent-review --diff HEAD~1
+code-agent-review --diff main...feat/my-branch
 ```
 
 ### Install as a pre-commit hook
 ```bash
-code-review-agent --install-hook
+code-agent-review --install-hook
 ```
 
 Once installed, the agent runs automatically on every commit and blocks it if critical issues are found.
@@ -97,6 +97,17 @@ The file has a critical SQL injection vulnerability on line 23...
 
 - Node.js >= 22
 - A Gemini API key from [Google AI Studio](https://aistudio.google.com)
+
+## Troubleshooting
+
+### Homebrew users — command not found after install
+
+If you installed Node.js via Homebrew and get `zsh: command not found` after installing, manually symlink the binary:
+
+```bash
+ln -sf /opt/homebrew/lib/node_modules/code-agent-review/dist/index.js /opt/homebrew/bin/code-agent-review
+chmod +x /opt/homebrew/lib/node_modules/code-agent-review/dist/index.js
+```
 
 ## License
 

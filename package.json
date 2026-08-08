@@ -1,6 +1,6 @@
 {
   "name": "code-agent-review",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "AI-powered code review CLI using Gemini",
   "main": "dist/index.js",
   "bin": {
