@@ -1,5 +1,5 @@
 {
-  "name": "code-review-agent",
+  "name": "code-agent-review",
   "version": "1.0.2",
   "description": "AI-powered code review CLI using Gemini",
   "main": "dist/index.js",
