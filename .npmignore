@@ -3,3 +3,5 @@ src/
 .env.local
 .reviewrc.json
 *.test.ts
+dist/src/
+dist/**/*.test.js

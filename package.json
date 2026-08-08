@@ -4,20 +4,20 @@
   "description": "AI-powered code review CLI using Gemini",
   "main": "dist/index.js",
   "bin": {
-    "code-review-agent": "./dist/index.js"
+    "code-review-agent": "dist/index.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
+    "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "./node_modules/.bin/tsx src/index.ts"
+    "dev": "tsx src/index.ts"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/juinhong/code-review-agent"
+    "url": "git+https://github.com/juinhong/code-review-agent.git"
   },
   "keywords": [
     "ai",
